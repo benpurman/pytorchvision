@@ -45,8 +45,14 @@ class ConvertCocoPolysToMask:
         classes = [obj["category_id"] for obj in anno]
         classes = torch.tensor(classes, dtype=torch.int64)
 
-        segmentations = [obj["segmentation"] for obj in anno]
-        masks = convert_coco_poly_to_mask(segmentations, h, w)
+
+        # Check if the dataset actually has segmentation masks
+        if anno and "segmentation" in anno[0]:
+            segmentations = [obj["segmentation"] for obj in anno]
+            masks = convert_coco_poly_to_mask(segmentations, h, w)
+        else:
+            # Fallback: Create an empty dummy mask tensor so downstream slicing doesn't crash
+            masks = torch.zeros((len(anno), h, w), dtype=torch.uint8)
 
         keypoints = None
         if anno and "keypoints" in anno[0]:
