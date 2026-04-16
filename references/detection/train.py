@@ -80,6 +80,12 @@ def get_args_parser(add_help=True):
         type=str,
         help="dataset name. Use coco for object detection and instance segmentation and coco_kp for Keypoint detection",
     )
+    parser.add_argument(
+        "--num-classes",
+        default=91,
+        type=int,
+        help="number of classes (including background)",
+    )
     parser.add_argument("--model", default="maskrcnn_resnet50_fpn", type=str, help="model name")
     parser.add_argument("--device", default="cuda", type=str, help="device (Use cuda or cpu Default: cuda)")
     parser.add_argument(
@@ -203,7 +209,7 @@ def main(args):
     # Data loading code
     print("Loading data")
 
-    dataset, num_classes = get_dataset(is_train=True, args=args)
+    dataset, _ = get_dataset(is_train=True, args=args)
     dataset_test, _ = get_dataset(is_train=False, args=args)
 
     print("Creating data loaders")
@@ -243,7 +249,7 @@ def main(args):
         if args.rpn_score_thresh is not None:
             kwargs["rpn_score_thresh"] = args.rpn_score_thresh
     model = torchvision.models.get_model(
-        args.model, weights=args.weights, weights_backbone=args.weights_backbone, num_classes=num_classes, **kwargs
+        args.model, weights=args.weights, weights_backbone=args.weights_backbone, num_classes=args.num_classes, **kwargs
     )
     model.to(device)
     if args.distributed and args.sync_bn:
